@@ -3,8 +3,12 @@ use clap::Parser;
 use std::path::PathBuf;
 
 use svdtools::{
-    convert::convert_cli, interrupts::interrupts_cli, makedeps::makedeps_cli, mmap::mmap_cli,
-    patch::patch_cli, analyze::analyze_cli,
+    analyze::analyze_cli::{self, CompareConfig},
+    convert::convert_cli,
+    interrupts::interrupts_cli,
+    makedeps::makedeps_cli,
+    mmap::mmap_cli,
+    patch::patch_cli,
 };
 
 #[derive(Parser, Debug)]
@@ -18,6 +22,14 @@ enum Command {
         /// Format of input file (XML, JSON or YAML)
         #[clap(long = "input-format")]
         input_format: Option<convert_cli::InputFormat>,
+
+        /// Items are equal if descriptions the same
+        #[clap(long)]
+        compare_description: bool,
+
+        /// Compare fields
+        #[clap(long)]
+        with_fields: bool,
     },
     /// Patches an SVD file as specified by a YAML file
     Patch {
@@ -96,8 +108,20 @@ enum Command {
 impl Command {
     pub fn run(&self) -> Result<()> {
         match self {
-            Self::Analyze { in_path, input_format } => {
-                analyze_cli::analyze_file(in_path, *input_format)?;
+            Self::Analyze {
+                in_path,
+                input_format,
+                compare_description,
+                with_fields,
+            } => {
+                analyze_cli::analyze_file(
+                    in_path,
+                    *input_format,
+                    &CompareConfig {
+                        compare_description: *compare_description,
+                        with_fields: *with_fields,
+                    },
+                )?;
             }
             Self::Interrupts { svd_file, no_gaps } => {
                 interrupts_cli::parse_device(svd_file, !no_gaps)?;

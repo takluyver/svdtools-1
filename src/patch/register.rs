@@ -9,7 +9,8 @@ use yaml_rust::{yaml::Hash, Yaml};
 use super::iterators::{MatchIter, Matched};
 use super::yaml_ext::{AsType, GetVal, ToYaml};
 use super::{
-    check_offsets, make_dim_element, matchname, modify_dim_element, spec_ind, PatchResult, VAL_LVL,
+    check_offsets, make_dim_element, matchname, modify_dim_element, spec_ind, PatchResult, Spec,
+    VAL_LVL,
 };
 use super::{make_derived_enumerated_values, make_ev_array, make_ev_name, make_field};
 
@@ -360,6 +361,7 @@ impl RegisterExt for Register {
             let mut fields = Vec::new();
             let mut place = usize::MAX;
             let mut i = 0;
+            let (fspec, ignore) = fspec.spec();
             while i < fs.len() {
                 match &fs[i] {
                     Field::Single(f) if matchname(&f.name, fspec) => {
@@ -372,6 +374,9 @@ impl RegisterExt for Register {
                 }
             }
             if fields.is_empty() {
+                if ignore {
+                    return Ok(());
+                }
                 return Err(anyhow!(
                     "{}: fields {fspec} not found. Present fields: {}.`",
                     self.name,
@@ -432,9 +437,13 @@ impl RegisterExt for Register {
         Ok(())
     }
     fn split_fields(&mut self, fspec: &str, fsplit: &Hash) -> PatchResult {
+        let (fspec, ignore) = fspec.spec();
         let mut it = self.iter_fields(fspec);
         let (new_fields, name) = match (it.next(), it.next()) {
             (None, _) => {
+                if ignore {
+                    return Ok(());
+                }
                 return Err(anyhow!(
                     "Could not find any fields to split {}:{fspec}. Present fields: {}.`",
                     self.name,
@@ -686,6 +695,7 @@ impl RegisterExt for Register {
                 set_enum(ftag, evs.clone(), orig_usage, true, access)?;
             }
         } else {
+            let (fspec, ignore) = fspec.spec();
             let mut offsets: Vec<_> = Vec::new();
             for (i, f) in self.fields().enumerate() {
                 if matchname(&f.name, fspec) {
@@ -693,6 +703,9 @@ impl RegisterExt for Register {
                 }
             }
             if offsets.is_empty() {
+                if ignore {
+                    return Ok(());
+                }
                 return Err(anyhow!(
                     "Could not find field {pname}:{}:{fspec}. Present fields: {}.`",
                     self.name,
@@ -738,6 +751,7 @@ impl RegisterExt for Register {
 
     fn process_field_range(&mut self, pname: &str, fspec: &str, fmod: &[Yaml]) -> PatchResult {
         let mut set_any = false;
+        let (fspec, ignore) = fspec.spec();
         for ftag in self.iter_fields(fspec) {
             ftag.write_constraint = Some(WriteConstraint::Range(WriteConstraintRange {
                 min: fmod[0].i64()? as u64,
@@ -745,7 +759,7 @@ impl RegisterExt for Register {
             }));
             set_any = true;
         }
-        if !set_any {
+        if !ignore && !set_any {
             return Err(anyhow!(
                 "Could not find field {pname}:{}:{fspec}. Present fields: {}.`",
                 self.name,

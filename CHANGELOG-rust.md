@@ -5,6 +5,7 @@ This changelog tracks the Rust `svdtools` project. See
 
 ## [Unreleased]
 
+* Ignore rule if starts with "?@" and no matched instances
 * Move field with derived enums before other
 * `-1` for default enum value
 * mmaps: peripheral arrays, bump `svd` crates

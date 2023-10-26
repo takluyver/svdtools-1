@@ -6,6 +6,7 @@ This changelog tracks the Python `svdtools` project. See
 ## [Unreleased]
 
 * `-1` for default enum value
+* Ignore rule if starts with "?@" and no matched instances
 
 ## [v0.1.26] 2023-03-28
 

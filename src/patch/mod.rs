@@ -637,3 +637,18 @@ fn check_offsets(offsets: &[u32], dim_increment: u32) -> bool {
     }
     true
 }
+
+pub trait Spec {
+    /// Return specification and `ignore_if_not_exists` flag
+    fn spec(&self) -> (&str, bool);
+}
+
+impl Spec for str {
+    fn spec(&self) -> (&str, bool) {
+        if let Some(s) = self.strip_prefix("?@") {
+            (s, true)
+        } else {
+            (self, false)
+        }
+    }
+}

@@ -662,7 +662,7 @@ fn replace_first_from<'a>(s: &'a str, pat: &str, to: &str, i: usize) -> Cow<'a, 
 fn common_description(descs: &[Option<&str>], dim_index: &[String]) -> Option<Option<String>> {
     let mut start = 0;
     if descs.len() > 1 {
-        if let Some((d1, d2)) = descs[0].zip(descs[1]) {
+        if let Some((d1, d2)) = descs[0].zip(*descs.last().unwrap()) {
             start = first_diff(d1, d2);
         }
     }

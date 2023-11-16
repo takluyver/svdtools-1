@@ -1,7 +1,6 @@
 pub mod patch_cli;
 
 use globset::Glob;
-use std::borrow::Cow;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -639,38 +638,14 @@ fn check_offsets(offsets: &[u32], dim_increment: u32) -> bool {
     true
 }
 
-/// Compare 2 strings and return index of first different char
-fn first_diff(s1: &str, s2: &str) -> usize {
-    for ((i, c1), c2) in s1.char_indices().zip(s2.chars()) {
-        if c1 != c2 {
-            return i;
-        }
-    }
-    s1.len().min(s2.len())
-}
-/// Replace first occurrence of `pat` in string starting from byte `i`
-fn replace_first_from<'a>(s: &'a str, pat: &str, to: &str, i: usize) -> Cow<'a, str> {
-    if i >= s.len() {
-        s.into()
-    } else {
-        let (s1, s2) = s.split_at(i);
-        format!("{s1}{}", &s2.replacen(pat, to, 1)).into()
-    }
-}
 /// Tries to get common description (or displayNames) for register/field array with "%s" in index position.
 /// Returns `None` if incoming descriptions have more then 1 difference
 fn common_description(descs: &[Option<&str>], dim_index: &[String]) -> Option<Option<String>> {
-    let mut start = 0;
-    if descs.len() > 1 {
-        if let Some((d1, d2)) = descs[0].zip(*descs.last().unwrap()) {
-            start = first_diff(d1, d2);
-        }
-    }
     let mut dsc = None;
     let mut first = true;
     for (d, idx) in descs.iter().zip(dim_index) {
         if first {
-            dsc = d.map(|desc| replace_first_from(desc, idx, "%s", start));
+            dsc = d.map(|desc| desc.replacen(idx, "%s", 1));
         } else if d
             != &dsc
                 .as_ref()

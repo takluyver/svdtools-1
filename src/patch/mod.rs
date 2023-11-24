@@ -643,6 +643,16 @@ fn check_offsets(offsets: &[u32], dim_increment: u32) -> bool {
 fn common_description(descs: &[Option<&str>], dim_index: &[String]) -> Option<Option<String>> {
     let mut dsc = None;
     let mut first = true;
+    if let Some(desc0) = descs[0] {
+        let idx0 = dim_index[0];
+        for i1 in desc0.match_indices() {
+            let (s1, sx) = desc0.split_at(i1);
+            let (_, s2) = sx.split_at(idx0.len());
+            let dsc = format!("{s1}%s{s2}");
+        }
+    } else {
+        None
+    }
     for (d, idx) in descs.iter().zip(dim_index) {
         if first {
             dsc = d.map(|desc| desc.replacen(idx, "%s", 1));

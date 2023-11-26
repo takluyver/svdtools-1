@@ -8,6 +8,7 @@ This changelog tracks the Rust `svdtools` project. See
 * Move field with derived enums before other
 * `-1` for default enum value
 * mmaps: peripheral arrays, bump `svd` crates
+* patch: flag enables print patches on error
 
 ## [v0.3.4] 2023-10-14
 
